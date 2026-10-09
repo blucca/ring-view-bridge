@@ -17,7 +17,11 @@ The initial harness waited for the full 60-second expiry message. The Playground
 
 Version **0.1.1** adds a focused cleanup fix: when Ring returns a valid session Location followed by invalid SDP, and the compensating DELETE fails, the pool keeps the local handle and occupied slot for an explicit retry. A local HTTP fixture verifies the failed DELETE, retry, and concurrent-shutdown path. Public event and error data preserve the private upstream URL.
 
-[Structured observations](integration-run.json) · [Consumer source](https://github.com/blucca/care-handoff) · [Standalone app](../examples/minimal)
+## Latest consumer: 0.1.1
+
+At **12:43 UTC on 2026-10-09**, Care Handoff installed the public **0.1.1** Release, regenerated its browser vendor module, and completed another official WHEP session: create **201**, decoded frames **1 → 50** at **1280 × 720**, viewed report **200**, upstream delete **200**, active sessions **0**. Arrival and completion stayed empty; page errors were **0**. [Installed Release and consumer observations](consumer-0.1.1.json).
+
+[Structured 0.1.0 observations](integration-run.json) · [Consumer source](https://github.com/blucca/care-handoff) · [Standalone app](../examples/minimal)
 
 ![Real standalone playback](minimal-live.png)
 
