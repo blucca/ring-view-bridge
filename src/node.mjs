@@ -2,6 +2,8 @@ import {randomUUID} from 'node:crypto';
 
 const MAX_SDP_BYTES = 96 * 1024;
 const DEFAULT_ORIGIN = 'https://api.amazonvision.com';
+// Failed startup cleanup crosses the client/pool boundary without exposing a URL on the error.
+const pendingStartCleanup = new WeakMap();
 
 export class RingError extends Error {
   constructor(code, message, status = 502) {
@@ -138,11 +140,17 @@ export class RingWhepClient {
       return {answer: await readSdp(response), sessionUrl};
     } catch (error) {
       await response.body?.cancel().catch(() => {});
+      const failure = signal.aborted
+        ? new RingError('ring_timeout', 'Reading the Ring SDP answer timed out.', 504)
+        : error instanceof RingError ? error : invalidResponse();
       // A valid Location still gets released when the SDP body fails validation.
-      if (sessionUrl) await this.closeLiveSession(deviceId, sessionUrl).catch(() => {});
-      if (signal.aborted) throw new RingError('ring_timeout', 'Reading the Ring SDP answer timed out.', 504);
-      if (error instanceof RingError) throw error;
-      throw invalidResponse();
+      if (sessionUrl) {
+        try { await this.closeLiveSession(deviceId, sessionUrl); } catch (cleanupError) {
+          pendingStartCleanup.set(failure, {client: this, deviceId, sessionUrl,
+            code: cleanupError.code || 'ring_network'});
+        }
+      }
+      throw failure;
     }
   }
 
@@ -216,7 +224,18 @@ export class LiveSessionPool {
       entry.timer.unref?.();
       return {...entry.public, answer: result.answer};
     } catch (error) {
-      if (!entry.upstream) this.#sessions.delete(sessionId);
+      const cleanup = pendingStartCleanup.get(error);
+      if (cleanup?.client === this.#client && cleanup.deviceId === deviceId) {
+        pendingStartCleanup.delete(error);
+        entry.upstream = cleanup.sessionUrl;
+        entry.ready = Promise.resolve({sessionUrl: cleanup.sessionUrl});
+        entry.closeReason ||= 'startup_failed';
+        const now = Date.now();
+        entry.public = Object.freeze({sessionId, deviceId, startedAt: new Date(now).toISOString(),
+          expiresAt: new Date(now + this.#lifetimeMs).toISOString(), maxSeconds: this.#lifetimeMs / 1000});
+        this.#emit('close_failed', entry, {reason: entry.closeReason,
+          error: {code: cleanup.code, message: 'Upstream session cleanup failed. Retry close().'}});
+      } else if (!entry.upstream) this.#sessions.delete(sessionId);
       throw error;
     }
   }
@@ -229,8 +248,11 @@ export class LiveSessionPool {
     entry.closePromise = (async () => {
       let result;
       try { result = await entry.ready; } catch {
-        this.#sessions.delete(sessionId);
-        return {closed: true, sessionId};
+        // open() restores a known upstream before this older ready rejection resumes.
+        if (!entry.upstream) {
+          this.#sessions.delete(sessionId);
+          return {closed: true, sessionId};
+        }
       }
       entry.upstream ||= result.sessionUrl;
       clearTimeout(entry.timer);

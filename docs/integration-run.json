@@ -1,0 +1,110 @@
+{
+  "package": "@blucca/ring-view-bridge@0.1.0",
+  "date": "2026-10-09",
+  "source": "Official Ring Playground, simulated Package footage",
+  "standalone": {
+    "video": {
+      "width": 1280,
+      "height": 720,
+      "currentTime": 1.484,
+      "readyState": 4,
+      "frames": 50,
+      "paused": false
+    },
+    "firstFrame": "First frame in 12.9 s \u00b7 video-frame-callback",
+    "close": "explicit close, upstream HTTP 200"
+  },
+  "careHandoff": {
+    "video": {
+      "width": 1280,
+      "height": 720,
+      "currentTime": 1.419,
+      "readyState": 4,
+      "frames": 47,
+      "paused": false
+    },
+    "closure": "browser reported peer interruption after playback; automatic cleanup returned HTTP 200",
+    "liveView": {
+      "activeSessions": 0,
+      "lastSession": {
+        "sessionId": "b438578d-e22e-4f61-b025-31626a51c3c9",
+        "source": "ring-playground",
+        "startedAt": "2026-10-09T12:34:34.316Z",
+        "expiresAt": "2026-10-09T12:35:34.316Z",
+        "playbackStartedAt": "2026-10-09T12:34:36.322Z",
+        "endedAt": "2026-10-09T12:34:54.238Z",
+        "playbackReportSource": "video-frame-callback",
+        "endReason": "viewer_closed",
+        "closeStatus": "closed"
+      }
+    },
+    "arrival": null,
+    "completion": null
+  },
+  "mobile": {
+    "width": 390,
+    "body": 375,
+    "buttonVisible": true
+  },
+  "pageErrors": [],
+  "api": [
+    {
+      "path": "/v1/devices",
+      "method": "GET",
+      "status": 200,
+      "at": "2026-10-09T12:33:02.107Z",
+      "contentType": "application/json",
+      "count": 1
+    },
+    {
+      "path": "/v1/devices/[device]/media/streaming/whep/sessions",
+      "method": "POST",
+      "status": 201,
+      "at": "2026-10-09T12:34:14.549Z",
+      "contentType": "application/sdp"
+    },
+    {
+      "path": "/v1/devices",
+      "method": "GET",
+      "status": 200,
+      "at": "2026-10-09T12:34:21.523Z",
+      "contentType": "application/json",
+      "count": 1
+    },
+    {
+      "path": "/v1/devices/[device]/media/streaming/whep/sessions/[session]",
+      "method": "DELETE",
+      "status": 200,
+      "at": "2026-10-09T12:34:21.950Z"
+    },
+    {
+      "path": "/v1/devices/[device]/status",
+      "method": "GET",
+      "status": 200,
+      "at": "2026-10-09T12:34:22.812Z",
+      "contentType": "application/json"
+    },
+    {
+      "path": "/v1/history/devices/[device]/events",
+      "method": "GET",
+      "status": 200,
+      "at": "2026-10-09T12:34:24.035Z",
+      "contentType": "application/json",
+      "count": 4
+    },
+    {
+      "path": "/v1/devices/[device]/media/streaming/whep/sessions",
+      "method": "POST",
+      "status": 201,
+      "at": "2026-10-09T12:34:34.315Z",
+      "contentType": "application/sdp"
+    },
+    {
+      "path": "/v1/devices/[device]/media/streaming/whep/sessions/[session]",
+      "method": "DELETE",
+      "status": 200,
+      "at": "2026-10-09T12:34:54.238Z"
+    }
+  ],
+  "harnessObservation": "The original harness expected a 60-second expiry label. This source disconnected after about 20 seconds; interruption cleanup completed. Deadline behavior is covered by the local lifecycle contract."
+}

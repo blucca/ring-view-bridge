@@ -26,13 +26,19 @@ Open **http://127.0.0.1:4325/** and select **Open 60-second view**. The page sho
 
 `RING_ACCESS_TOKEN` provides an environment-variable alternative. Updating the token file takes effect on the next upstream request. The example binds to loopback and selects the device on the server. `PORT` changes the local port.
 
+![The standalone example receiving official Ring Playground frames with first-frame timing and lifecycle events.](docs/minimal-live.png)
+
+The screenshot uses official simulated Package footage: [“Thief stealing our package”](https://www.youtube.com/watch?v=TfTFu8lGrwk) by [frollard](https://www.youtube.com/@frollard), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), captured and scaled within the app.
+
 ## Add it to an existing app
 
 Install the versioned GitHub Release package:
 
 ```sh
-npm install https://github.com/blucca/ring-view-bridge/releases/download/v0.1.0/blucca-ring-view-bridge-0.1.0.tgz
+npm install https://github.com/blucca/ring-view-bridge/releases/download/v0.1.1/blucca-ring-view-bridge-0.1.1.tgz
 ```
+
+With npm 12+, add `--allow-remote=root` to opt in to this direct Release dependency.
 
 ### Server: keep the token and upstream Location private
 
@@ -112,7 +118,7 @@ Browser                 Your Node server                    Ring API
 - **Each ready session gets an explicit deadline.** Default lifetime: 60 seconds. Server and browser independently schedule cleanup from session metadata.
 - **Closing during startup gets its own cleanup path.** A late-created upstream session is released. Graceful server shutdown awaits pending creates and their DELETEs.
 - **Repeated close shares the in-flight result.** Successful cleanup releases the slot; subsequent closes resolve successfully.
-- **Failed DELETE remains visible.** The pool emits `close_failed`, keeps the slot reserved, and accepts an explicit `close(sessionId)` retry. `closeAll()` returns `failedSessionIds` for operational follow-up.
+- **Failed DELETE remains visible, including cleanup after invalid startup SDP.** The pool emits `close_failed`, keeps the slot reserved, and accepts an explicit `close(sessionId)` retry. `closeAll()` returns `failedSessionIds` for operational follow-up.
 - **First frame is measured at the video element.** Modern browsers use `requestVideoFrameCallback`; the fallback uses loaded video data. The callback includes the observation source.
 - **Tokens and upstream URLs stay server-side.** JSON session responses and pool events expose the local UUID and lifecycle metadata. Returned WHEP Locations must match the configured Ring origin and requested device path.
 

@@ -106,6 +106,65 @@ test('failed creation frees its reserved slot and observer errors preserve clean
   assert.equal(pool.activeCount, 0);
 });
 
+test('failed startup cleanup retains a private retryable slot, including shutdown during creation', async () => {
+  let allowDelete = false;
+  let postReceived;
+  let releasePost;
+  const location = '/v1/devices/camera-1/media/streaming/whep/sessions/session-1?private=cleanup-key';
+  const upstream = createServer(async (req, res) => {
+    req.resume();
+    assert.equal(req.headers.authorization, 'Bearer fixture-private-token');
+    if (req.method === 'DELETE') {
+      assert.equal(req.url, location);
+      res.writeHead(allowDelete ? 204 : 503);
+      return res.end();
+    }
+    postReceived.resolve();
+    await releasePost.promise;
+    res.writeHead(201, {'Content-Type': 'application/sdp', Location: location});
+    res.end('invalid SDP');
+  });
+  await new Promise(done => upstream.listen(0, '127.0.0.1', done));
+  try {
+    const client = new RingWhepClient({accessToken: 'fixture-private-token',
+      baseUrl: `http://127.0.0.1:${upstream.address().port}`});
+    for (const shutdownDuringStartup of [false, true]) {
+      allowDelete = false;
+      postReceived = deferred();
+      releasePost = deferred();
+      const events = [];
+      const pool = new LiveSessionPool({client, maxSessions: 1, onEvent: event => events.push(event)});
+      let startupFailure;
+      const failed = assert.rejects(pool.open({deviceId: 'camera-1', offer}), error => {
+        startupFailure = error;
+        return error.code === 'ring_invalid_response';
+      });
+      await postReceived.promise;
+      const shutdown = shutdownDuringStartup ? pool.closeAll() : null;
+      releasePost.resolve();
+      await failed;
+      const sessionId = events[0].sessionId;
+      if (shutdown) assert.deepEqual(await shutdown, {closed: false, failedSessionIds: [sessionId]});
+      assert.equal(pool.activeCount, 1);
+      assert.equal(pool.has(sessionId), false);
+      assert.equal(pool.get(sessionId).sessionId, sessionId);
+      assert.equal(events[0].type, 'close_failed');
+      assert.equal(events[0].error.code, 'ring_stream_http');
+      assert.equal(events.filter(event => event.type === 'started').length, 0);
+      const publicData = JSON.stringify([startupFailure, pool.get(sessionId), events, client]);
+      assert.equal(publicData.includes('cleanup-key'), false);
+      assert.equal(publicData.includes('fixture-private-token'), false);
+      assert.equal(publicData.includes(location), false);
+      if (!shutdown) await assert.rejects(pool.open({deviceId: 'camera-1', offer}), error => error.status === 429);
+      allowDelete = true;
+      if (shutdown) assert.deepEqual(await pool.closeAll(), {closed: true, failedSessionIds: []});
+      else assert.deepEqual(await pool.close(sessionId), {closed: true, sessionId});
+      assert.equal(pool.activeCount, 0);
+      assert.equal(events.at(-1).type, 'closed');
+    }
+  } finally { upstream.closeAllConnections(); await new Promise(done => upstream.close(done)); }
+});
+
 test('origin/content-type guard and credential configuration expose actionable errors', () => {
   const headers = {origin: 'http://127.0.0.1:4325', 'content-type': 'application/json; charset=utf-8'};
   assertSameOrigin({headers}, headers.origin);

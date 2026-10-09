@@ -1,6 +1,6 @@
 {
   "name": "@blucca/ring-view-bridge",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Framework-free Ring WHEP sessions for Node and a receive-only browser viewer.",
   "type": "module",
   "engines": {
