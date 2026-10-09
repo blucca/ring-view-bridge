@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ring View Bridge · minimal viewer</title><link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header><span class="eyebrow">RING VIEW BRIDGE · LIVE EXAMPLE</span><h1>A camera view.<br>A clean lifecycle.</h1>
+      <p>One browser, one receive-only stream, one server-owned session.</p></header>
+    <section class="screen" aria-label="Ring live view"><video autoplay muted playsinline controls aria-label="Ring camera video"></video>
+      <span id="state" role="status">Ready to connect</span></section>
+    <div class="controls"><button id="open">Open 60-second view</button><button id="close" class="secondary" disabled>Close view</button></div>
+    <p id="first-frame">First-frame timing appears when video arrives.</p>
+    <details open><summary>Session events</summary><pre id="events" aria-live="polite">Server-side credentials · receive-only audio and video</pre></details>
+    <footer>Official Ring Playground streams contain simulated footage. For a linked account, the configured device supplies the stream.
+      <a href="https://github.com/blucca/ring-view-bridge">Source & integration guide ↗</a></footer>
+  </main>
+  <script type="module" src="/app.mjs"></script>
+</body>
+</html>

@@ -1,0 +1,46 @@
+{
+  "name": "@blucca/ring-view-bridge",
+  "version": "0.1.0",
+  "description": "Framework-free Ring WHEP sessions for Node and a receive-only browser viewer.",
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "exports": {
+    "./node": {
+      "types": "./src/node.d.mts",
+      "import": "./src/node.mjs"
+    },
+    "./browser": {
+      "types": "./src/browser.d.mts",
+      "import": "./src/browser.mjs"
+    }
+  },
+  "files": [
+    "src",
+    "examples",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "start": "node examples/minimal/server.mjs"
+  },
+  "license": "MIT",
+  "author": "blucca",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/blucca/ring-view-bridge.git"
+  },
+  "homepage": "https://github.com/blucca/ring-view-bridge#readme",
+  "bugs": "https://github.com/blucca/ring-view-bridge/issues",
+  "keywords": [
+    "ring",
+    "whep",
+    "webrtc",
+    "nodejs",
+    "live-view",
+    "javascript"
+  ]
+}
